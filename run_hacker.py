@@ -1,4 +1,4 @@
-import click
+import click # type: ignore
 from json import loads
 from motor.motor_tornado import MotorClient
 from tornado.gen import coroutine

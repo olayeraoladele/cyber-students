@@ -1,6 +1,7 @@
 from datetime import datetime
 from time import mktime
 from tornado.gen import coroutine
+from .utils import myDecrypt  
 
 from .base import BaseHandler
 
@@ -22,12 +23,23 @@ class AuthHandler(BaseHandler):
             self.send_error(400, message='You must provide a token!')
             return
 
+        # the field names need to match the field names in registration.py
         user = yield self.db.users.find_one({
             'token': token
         }, {
-            'email': 1,
+
+            'emailAddress': 1,
+            'address': 1,
             'displayName': 1,
-            'expiresIn': 1
+            'telephone_number': 1,
+            'disability': 1,
+            'expiresIn': 1,
+            'encrypt_emailAddress':1,
+            'encrypt_telephone_number': 1,
+            'encrypt_disability' : 1,
+            'encrypt_address' : 1,
+            'encrypt_dateOfBirth' : 1
+            
         })
 
         if user is None:
@@ -40,8 +52,15 @@ class AuthHandler(BaseHandler):
             self.current_user = None
             self.send_error(403, message='Your token has expired!')
             return
-
+                
         self.current_user = {
-            'email': user['email'],
-            'display_name': user['displayName']
+            'emailAddress': user['emailAddress'],
+            'display_name': myDecrypt(user['displayName']),
+             'telephone_number' : myDecrypt (user['encrypt_telephone_number']),
+             'encrypt_disability':myDecrypt(user['encrypt_disability']),
+             'encrypt_address':myDecrypt(user['encrypt_address']),
+             'encrypt_dateOfBirth':myDecrypt(user['encrypt_dateOfBirth'])
+            
         }
+       
+        return user

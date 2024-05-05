@@ -3,6 +3,7 @@ from time import mktime
 from tornado.escape import json_decode, utf8
 from tornado.gen import coroutine
 from uuid import uuid4
+from .utils import hash_pass
 
 from .base import BaseHandler
 
@@ -35,6 +36,7 @@ class LoginHandler(BaseHandler):
             if not isinstance(email, str):
                 raise Exception()
             password = body['password']
+           
             if not isinstance(password, str):
                 raise Exception()
         except:
@@ -49,17 +51,22 @@ class LoginHandler(BaseHandler):
             self.send_error(400, message='The password is invalid!')
             return
 
+         
         user = yield self.db.users.find_one({
           'email': email
         }, {
-          'password': 1
+          'hashed_password': 1
         })
 
         if user is None:
             self.send_error(403, message='The email address and password are invalid!')
             return
 
-        if user['password'] != password:
+         
+         
+        hashed_password = hash_pass(password)
+        #if user['password'] != password:
+        if user['hashed_password'] != hashed_password:
             self.send_error(403, message='The email address and password are invalid!')
             return
 
